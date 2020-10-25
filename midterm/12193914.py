@@ -6,7 +6,6 @@ import json
 
 from typing import List, Dict
 
-global all_data  # 전역변수설정
 
 print('시작')
 def make_data():
@@ -70,9 +69,10 @@ def load_std_info():
       if i == input_file:
         with open(input_file, 'rb') as file:
           check = True
+          print(input_file)
           read_data = pickle.load(file)
           print(read_data)
-          
+          file.close()
           return read_data
     if not check:
       # 해당경로에 입력받은 파일이 없을경우
@@ -80,6 +80,7 @@ def load_std_info():
       with open(input_file, 'wb') as file:
         a = pickle.dumps({})
         file.write(a)
+        file.close()
         return dict()
   except EOFError:
     return dict()
@@ -88,8 +89,7 @@ def load_std_info():
 def add_id():
   count:int = 0
   global all_data
-  all_data = load_std_info()
-  print(all_data)
+
   while True:
     try:
       if count >= 3:
@@ -105,10 +105,14 @@ def add_id():
       
       print(f"학번 '{input_data_to_number}'가 입력되었습니다")
       # ---- data 처리 ---- #
-      all_data[input_data_to_number] = []
-      
-      print(all_data)
-      return 
+      try:
+        all_data[input_data_to_number] = []
+        print(all_data)
+        return 
+      except NameError:
+        all_data = {}
+        all_data[input_data_to_number] = []
+        return
     except ValueError:
       print('학번의 형태가 맞지 않습니다(숫자8자리). 다시 입력하세요')
       count += 1
@@ -116,55 +120,63 @@ def add_id():
 def add_score():
     id_count: int = 0
     score_count: int = 0
+    try:
     # 만약 학생학번이 딕셔너리에 없을경우도 에러처리를 해야되는지?
     # 조건에는 없으니 딕셔너리에는 무조건 학번이 있다고 가정
-    global all_data
-    print(all_data)
-    
-    while True:
-      try:
-        if id_count >= 3:
-          # 학번 3번이상 입력시 초기화면
-          return
-        
-        input_data:str = input("학생 학번을 입력해주세요: ")
-        
-        # 학생점수 리스트로 출력
-        print(f'{input_data} 학생의 점수 리스트입니다. {all_data[int(input_data)]}')
-        # 숫자변환 시 error확인
-        input_data_to_number:int = int(input_data)
-        if len(input_data) != 8:
+      while True:
+        try:
+          if id_count >= 3:
+            # 학번 3번이상 입력시 초기화면
+            return
+          
+          input_data:str = input("학생 학번을 입력해주세요: ")
+          
+          # 학생점수 리스트로 출력
+          try:
+            print(f'{input_data} 학생의 점수 리스트입니다. {all_data[int(input_data)]}')
+            # 숫자변환 시 error확인
+            input_data_to_number:int = int(input_data)
+            if len(input_data) != 8:
+              print('학번의 형태가 맞지 않습니다(숫자8자리). 다시 입력하세요')
+              id_count += 1
+              continue
+            while True:
+              try:
+                if score_count >= 3:
+                  return
+                score_data = int(input("점수를 입력해주세요"))
+                try:
+                  for i in all_data:
+                    print(all_data, i, input_data_to_number)
+                    # 해당학번이 있는지 체크
+                    if int(i) == input_data_to_number:
+                      if score_data > 100:
+                        score_count += 1
+                        # 만일 100 초과의 입력이나 숫자가 아닌경우는 “점수가잘못되었습니다.”라는 말과 함께 0점 입력.
+                        print('점수가 잘못되었습니다.')
+                        all_data[i].append(0)
+                        continue
+                      print('입력되었습니다.')
+                      all_data[i].append(score_data)
+                      return
+                except NameError:
+                  print("학번부터 입력해주세요")
+                  return
+              except ValueError:
+                for i in all_data:
+                  if int(i) == input_data_to_number:
+                    score_count += 1
+                      # 만일 100 초과의 입력이나 숫자가 아닌경우는 “점수가잘못되었습니다.”라는 말과 함께 0점 입력.
+                    print('점수가 잘못되었습니다.')
+                    all_data[i].append(0)
+          except NameError:
+            print("학번부터 입력해주세요")
+            return  
+        except ValueError:
           print('학번의 형태가 맞지 않습니다(숫자8자리). 다시 입력하세요')
           id_count += 1
-          continue
-        while True:
-          try:
-            if score_count >= 3:
-              return
-            score_data = int(input("점수를 입력해주세요"))
-            print(all_data)
-            for i in all_data:
-              if int(i) == input_data_to_number:
-                if score_data > 100:
-                  score_count += 1
-                  # 만일 100 초과의 입력이나 숫자가 아닌경우는 “점수가잘못되었습니다.”라는 말과 함께 0점 입력.
-                  print('점수가 잘못되었습니다.')
-                  all_data[i].append(0)
-                  continue
-                print('입력되었습니다.')
-                all_data[i].append(score_data)
-              return
-          except ValueError:
-            for i in all_data:
-              if int(i) == input_data_to_number:
-                score_count += 1
-                  # 만일 100 초과의 입력이나 숫자가 아닌경우는 “점수가잘못되었습니다.”라는 말과 함께 0점 입력.
-                print('점수가 잘못되었습니다.')
-                all_data[i].append(0)
-        
-      except ValueError:
-        print('학번의 형태가 맞지 않습니다(숫자8자리). 다시 입력하세요')
-        id_count += 1
+    except KeyError:
+      print('해당학번은 등록되어 있지 않습니다. 학번부터 입력하세요')
     
 def remove_id():
     count:int = 0
@@ -269,7 +281,7 @@ def save_data():
             
             with open(save_file_name, "wb") as file:
               json_file_check = True
-              file.write(pickle.dumps(all_data))
+              pickle.dump(all_data, file)
               file.close()
               return
           else:
@@ -278,14 +290,14 @@ def save_data():
             
             with open(save_file_name, "wb") as file:
               json_file_check = True
-              file.write(pickle.dumps(all_data))
+              pickle.dump(all_data, file)
               file.close()
               return
             
       if not json_file_check:
         save_file_name = select_file_name + ".json"
         with open(save_file_name, "wb") as file:
-          file.write(pickle.dumps(all_data))
+          pickle.dump(all_data, file)
           file.close()
           return
     except NameError:
@@ -310,19 +322,25 @@ def print_std_info():
       input_id: str = input("학번을 입력해주세요.")
       input_id_num: int = int(input_id)
       
-      if len(input_id) != 8:
+      if len(input_id) != 8 and int(input_id) != 0:
         count += 1
         print("학번의 형태가 맞지 않습니다(숫자 8자리). 다시 입력 하세요")
         continue
       try:
         if input_id_num == 0:
           for i in all_data:
+            print()
+            print('----- 시작 -----')
+            print()
             print(f"학번: {i}")
             # 숫자로 이루어진 요소를 문자열로 바꾸기
             value: list = all_data[i]
             value: list = list(map(str,value))
             value: str = "  ".join(value)
             print(f"점수: {value}")
+            print()
+            print('----- 끝 -----')
+          return 
         else:
           for i in all_data:
             if i == input_id_num:
@@ -370,9 +388,10 @@ if __name__ == "__main__":
         elif address == 7:
             save_data()
         elif address == 8:
-            pass
+            print_std_info()
         elif address == 9:
-            pass
+            print('프로그램 종료')
+            break
         else:
             print("올바른 명령어를 입력해주세요")
             continue
