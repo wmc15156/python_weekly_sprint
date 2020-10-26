@@ -14,40 +14,61 @@ def make_data():
 # 하지 않을 시 현재 경로를 입력해 줌. w 만일 해당 경로에 json 파일이 있다면, “경로에 해당 파
 # 일이 있습니다.”라는 말과 함께 3번 잘못 입력 시 초기
 # 화면을 보여줌
-  count = 0
-  json_file = False
+  count: int = 0
+  json_file: bool = False
+  """[경로를 입력받으면 해당 경로에 .json파일을 만드는 코드]
+    - 조건: 학생데이터를 만드는코드(?) => 정확히 무엇을 요구하는지는 ????
+    
+    - 구현:
+      저장경로를 입력받으면 해당경로에 입력받은 .json 폴더가 있는지 검사후
+      해당 파일 생성
+  
+  """
   
   while True:
+    # 잘못입력시 그냥 
     if count == 3:
+      # 3번 잘못입력 시 현재경로를 그냥 입력
+      os.chdir(os.getcwd())
       return
-    route = input("저장경로를 입력하세요: ")
+    route: str = input("저장경로를 입력하세요: ")
+    select_file_name: str = input("파일명을 입력하세요: ")
     
     if route == "":
       os.chdir(os.getcwd())
     else:
       os.chdir(route)
     
-    work_dir = os.listdir(os.getcwd())
-    
-    for i in work_dir:
-      filename, fileExtension = os.path.splitext(i)
-      if fileExtension == '.json':
-        json_file = True
-  
-      if(json_file):
-        count += 1
-        print("경로에 해당 파일이 있습니다.!!!!")
-        break
+    work_dir: str = os.listdir(os.getcwd())
+    while True:
+      for i in work_dir:
+        filename, fileExtension = os.path.splitext(i)
       
-    if json_file == False:
-      with open("test2.json", 'w') as file:
-        file.write("{}")
-        return
+        if(filename == select_file_name):
+          count += 1
+          print("경로에 해당 파일이 있습니다.!!!!")
+          json_file = True
+          break
+        
+      if json_file == False:
+        with open(select_file_name + ".json", 'w') as file:
+          file.write("")
+          return
     
 
 def load_std_info():
+  """[경로 및 파일명을 입력받아 해당파일을 불러오는 코드]
+
+  -조건 :파일을 포함하여 불러올 경로를 입력해 주세요”라는 경로를
+    커맨드 입력받아 저장된 json를 읽어 dictionary를 반환하는코드
   
-  check = False
+  - 구현: 경로 및 파일명을 입력받아 해당파일을 불러오는 코드 입력받은경로에 해당파일이 없으면
+    입력받은 파일로 생성
+  
+  Returns:
+      리턴 없음 종료목적 
+  """
+  check: bool = False
   router = input("파일을 포함하여 불러올 경로를 입력해주세요: ")
   # 입력받은 dir로 이동
 
@@ -87,6 +108,13 @@ def load_std_info():
     
           
 def add_id():
+  """[학번을 입력받아 학번을 전역변수 all_data 학번을 추가하는 함수]
+  구현:
+  학번을 입력받고 입력받은 학번이 숫자 8자리가 아니건 숫자가 아닌경우는 
+  학번의 형태가 맞지 않습니다(숫자 8자리) "문구를 출력 후 3번 잘못 입력 시 초기화면으로 이동
+  
+  
+  """
   count:int = 0
   global all_data
 
@@ -117,25 +145,43 @@ def add_id():
       print('학번의 형태가 맞지 않습니다(숫자8자리). 다시 입력하세요')
       count += 1
 
+
 def add_score():
-    id_count: int = 0
-    score_count: int = 0
-    try:
-    # 만약 학생학번이 딕셔너리에 없을경우도 에러처리를 해야되는지?
-    # 조건에는 없으니 딕셔너리에는 무조건 학번이 있다고 가정
+  """[학번을 입력받아 해당 학번 리스트에 점수를 넣는 함수]
+
+  학번 및 점수를 입력받아 해당학번에 점수를 insert하는 함수
+
+  학번은 무조건 숫자이거나 길이가 8이여야 하고 아닐경우는 "학번의 형태가 맞지 않습니다(숫자 8자리). 다시 입력 하세요" 출력
+  3번 초과시 초기화면으로 이동
+
+  점수입력시 100점이 초과 시 는 점수가잘못되었습니다.”라는 말과 함께 0점 입력(3번 모두 잘못입력시 0점).
+
+  정상적으로 입력시
+
+  에러처리코드:
+  추가
+  전역변수에 어떤학번도 없을경우(add_id함수를 이용해 학번이 입력되지 않은상태)에는 바로 초기화면으로 이동
+
+  """
+  
+  id_count: int = 0
+  score_count: int = 0
+  try:
+      # 만약 학생학번이 딕셔너리에 없을경우도 에러처리를 해야되는지?
+      # 조건에는 없으니 딕셔너리에는 무조건 학번이 있다고 가정
       while True:
         try:
           if id_count >= 3:
             # 학번 3번이상 입력시 초기화면
             return
-          
-          input_data:str = input("학생 학번을 입력해주세요: ")
-          
+
+          input_data: str = input("학생 학번을 입력해주세요: ")
+
           # 학생점수 리스트로 출력
           try:
             print(f'{input_data} 학생의 점수 리스트입니다. {all_data[int(input_data)]}')
             # 숫자변환 시 error확인
-            input_data_to_number:int = int(input_data)
+            input_data_to_number: int = int(input_data)
             if len(input_data) != 8:
               print('학번의 형태가 맞지 않습니다(숫자8자리). 다시 입력하세요')
               id_count += 1
@@ -143,6 +189,7 @@ def add_score():
             while True:
               try:
                 if score_count >= 3:
+                  all_data[input_data_to_number].append(0)
                   return
                 score_data = int(input("점수를 입력해주세요"))
                 try:
@@ -154,7 +201,6 @@ def add_score():
                         score_count += 1
                         # 만일 100 초과의 입력이나 숫자가 아닌경우는 “점수가잘못되었습니다.”라는 말과 함께 0점 입력.
                         print('점수가 잘못되었습니다.')
-                        all_data[i].append(0)
                         continue
                       print('입력되었습니다.')
                       all_data[i].append(score_data)
@@ -166,17 +212,16 @@ def add_score():
                 for i in all_data:
                   if int(i) == input_data_to_number:
                     score_count += 1
-                      # 만일 100 초과의 입력이나 숫자가 아닌경우는 “점수가잘못되었습니다.”라는 말과 함께 0점 입력.
+                    # 만일 100 초과의 입력이나 숫자가 아닌경우는 “점수가잘못되었습니다.”라는 말과 함께 0점 입력.
                     print('점수가 잘못되었습니다.')
-                    all_data[i].append(0)
           except NameError:
             print("학번부터 입력해주세요")
-            return  
+            return
         except ValueError:
           print('학번의 형태가 맞지 않습니다(숫자8자리). 다시 입력하세요')
           id_count += 1
-    except KeyError:
-      print('해당학번은 등록되어 있지 않습니다. 학번부터 입력하세요')
+  except KeyError:
+    print('해당학번은 등록되어 있지 않습니다. 학번부터 입력하세요')
     
 def remove_id():
     count:int = 0
